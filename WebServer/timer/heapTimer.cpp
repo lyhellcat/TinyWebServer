@@ -1,6 +1,7 @@
 #include <cassert>
 
 #include "heaptimer.h"
+using namespace std;
 
 void HeapTimer::siftUp_(size_t i) {
     assert(i >= 0 && i < heap_.size());
@@ -124,7 +125,7 @@ int HeapTimer::GetNextTick() {
     size_t res = -1;
     if (!heap_.empty()) {
         res =
-            std::chrono::duration_cast<MS>(heap_.front().expires - Clock::now())
+            chrono::duration_cast<MS>(heap_.front().expires - Clock::now())
                 .count();
         if (res < 0) {
             res = 0;
