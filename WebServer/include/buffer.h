@@ -32,7 +32,7 @@ public:
     void RetrieveAll();
     std::string RetrieveAllToStr();
 
-    const char* ConstBeginWrite() const;
+    const char* ConstBeginWrite();
     char* BeginWrite();
 
     void Append(const std::string& str);

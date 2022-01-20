@@ -47,6 +47,10 @@ char* Buffer::BeginWrite() {
     return BeginPtr_() + writePos_;
 }
 
+const char* Buffer::ConstBeginWrite() {
+    return BeginPtr_() + writePos_;
+}
+
 void Buffer::HasWritten(size_t len) {
     writePos_ += len;
 }

@@ -14,14 +14,19 @@ void SqlConnPool::Init(const char *host, int port, const char *user,
     assert(connSize > 0);
     for (int i = 0; i < connSize; i++) {
         MYSQL *sql = nullptr;
-        if (!mysql_init(sql)) {
-            LOG_ERROR("MySql init error");
-            LOG_ERROR(mysql_error(sql));
+        sql = mysql_init(sql);
+        if (!sql) {
+            LOG_ERROR("MySql init error!");
+            assert(sql);
         }
-        if (!mysql_real_connect(sql, host, user, pwd, dbName, port, nullptr, 0)) {
-            LOG_ERROR("MySql connect error");
-            LOG_ERROR(mysql_error(sql));
+        if (!mysql_real_connect(sql, host, user, pwd, dbName, port, nullptr,
+                                0)) {
+            LOG_ERROR("MySql Connect error!");
+            LOG_ERROR("Failed to connect to database: Error: %s",
+                        mysql_error(sql));
+            continue;
         }
+        LOG_INFO("MySql conn: %d Connected!", i);
         connQue_.push(sql);
     }
     MAX_CONN_ = connSize;

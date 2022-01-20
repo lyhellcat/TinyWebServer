@@ -50,6 +50,10 @@ HttpResponse::HttpResponse() {
     m_FileState_ = {0};
 };
 
+HttpResponse::~HttpResponse() {
+    UnmapFile();
+}
+
 void HttpResponse::Init(const string& srcDir, string& path,
                         bool isKeepAlive, int code) {
     if (m_File_) {

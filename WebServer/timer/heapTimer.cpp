@@ -50,11 +50,8 @@ void HeapTimer::add(int id, int timeout, const TimeoutCallBack& cb) {
     } else {
         // Existing Node: Adjust Heap
         i = ref_[id];
-        heap_[i].expires = Clock::now() + MS(timeout);
+        adjust(id, timeout);
         heap_[i].cb = cb;
-        if (!siftdown_(i, heap_.size())) {
-            siftUp_(i);
-        }
     }
 }
 
@@ -91,7 +88,9 @@ void HeapTimer::adjust(int id, int timeout) {
     // Adjust the node with the specified id
     assert(!heap_.empty() && ref_.count(id) > 0);
     heap_[ref_[id]].expires = Clock::now() + MS(timeout);
-    siftdown_(ref_[id], heap_.size());
+    if (!siftdown_(ref_[id], heap_.size())) {
+        siftUp_(ref_[id]);
+    }
 }
 
 void HeapTimer::tick() {

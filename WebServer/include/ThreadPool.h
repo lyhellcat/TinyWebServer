@@ -17,7 +17,7 @@ public:
             std::thread([pool = pool_] {
                 std::unique_lock<std::mutex> locker(pool->mtx);
                 while (1) {
-                    if (pool->tasks.empty()) {
+                    if (pool->tasks.empty() == false) {
                         auto task = std::move(pool->tasks.front());
                         pool->tasks.pop();
                         locker.unlock();
@@ -50,6 +50,7 @@ public:
             std::lock_guard<std::mutex> locker(pool_->mtx);
             pool_->tasks.emplace(std::forward<T>(task));
         }
+        pool_->cond.notify_one();
     }
 
 private:
@@ -59,6 +60,5 @@ private:
         std::condition_variable cond;
         std::queue<std::function<void()>> tasks;
     };
-
     std::shared_ptr<Pool> pool_;
 };

@@ -1,0 +1,9 @@
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include)
+
+add_library(server_http_request httpRequest.cpp)
+add_library(server_http_response httpResponse.cpp)
+add_library(server_http_conn httpConn.cpp)
+
+target_link_libraries(server_http_request server_log server_sql server_buffer server_timer)
+target_link_libraries(server_http_response server_log server_sql server_buffer server_timer)
+target_link_libraries(server_http_conn server_http_response server_log server_sql server_buffer server_timer)
