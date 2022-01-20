@@ -20,14 +20,14 @@ public:
     void ClosePool();
 
 private:
-    SqlConnPool();
+    SqlConnPool() = default;
     ~SqlConnPool();
 
     int MAX_CONN_;
-    int use_count_;
-    int free_count_;
+    int use_count_{0};
+    int free_count_{0};
 
     std::queue<MYSQL *> connQue_;
-    std::mutex mtx;
+    std::mutex mtx_;
     sem_t semId_;
 };
