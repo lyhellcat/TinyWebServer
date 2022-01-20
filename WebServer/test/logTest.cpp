@@ -9,4 +9,5 @@ int main() {
     LOG_INFO("This is log info");
     LOG_DEBUG("This is log for debug");
     LOG_WARN("This is log WARNING");
+    
 }
