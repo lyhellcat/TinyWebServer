@@ -94,12 +94,15 @@ void WebServer::Start() {
             if (fd == listenFd_) {
                 DealListen_();
             } else if (events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
+                assert(users_.size());
                 assert(users_.count(fd) > 0);
                 CloseConn_(&users_[fd]);
             } else if (events & EPOLLIN) {
+                assert(users_.size());
                 assert(users_.count(fd) > 0);
                 DealRead_(&users_[fd]);
             } else if (events & EPOLLOUT) {
+                assert(users_.size());
                 assert(users_.count(fd) > 0);
                 DealWrite_(&users_[fd]);
             } else {

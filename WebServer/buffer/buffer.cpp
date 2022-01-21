@@ -3,8 +3,12 @@
 #include <unistd.h>
 
 #include "buffer.h"
+using namespace std;
 
-Buffer::Buffer(int bufferSize) : buffer_(bufferSize) {}
+Buffer::Buffer(int bufferSize)
+    : buffer_(1024), readPos_(0), writePos_(0) {
+    cout << "Call Buffer() ctor" << endl;
+}
 
 size_t Buffer::ReadableBytes() const {
     return writePos_ - readPos_;
@@ -47,8 +51,8 @@ char* Buffer::BeginWrite() {
     return BeginPtr_() + writePos_;
 }
 
-const char* Buffer::ConstBeginWrite() {
-    return BeginPtr_() + writePos_;
+const char* Buffer::ConstBeginWrite() const {
+    return ConstBeginPtr_() + writePos_;
 }
 
 void Buffer::HasWritten(size_t len) {
@@ -60,10 +64,12 @@ void Buffer::Append(const std::string &str) {
 }
 
 void Buffer::Append(const void *data, size_t len) {
+    assert(data);
     Append(static_cast<const char*>(data), len);
 }
 
 void Buffer::Append(const char *str, size_t len) {
+    assert(str);
     EnsureWriteable(len);
     std::copy(str, str + len , BeginWrite());
     HasWritten(len);
@@ -77,6 +83,7 @@ void Buffer::EnsureWriteable(size_t len) {
     if (WritableBytes() < len) {
         MakeSpace_(len);
     }
+    assert(WritableBytes() >= len);
 }
 
 ssize_t Buffer::ReadFd(int fd, int &saveErrno) {
@@ -112,11 +119,11 @@ ssize_t Buffer::WriteFd(int fd, int &saveErrno) {
 }
 
 char* Buffer::BeginPtr_() {
-    return &(*buffer_.begin());
+    return &*buffer_.begin();
 }
 
 const char* Buffer::ConstBeginPtr_() const {
-    return &(*buffer_.begin());
+    return &*buffer_.begin();
 }
 
 void Buffer::MakeSpace_(size_t len) {

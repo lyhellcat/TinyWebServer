@@ -42,7 +42,9 @@ void HttpConn::Close() {
     }
 }
 
-int HttpConn::GetFd() const { return fd_; }
+int HttpConn::GetFd() const {
+    return fd_;
+}
 
 struct sockaddr_in HttpConn::GetAddr() const {
     return addr_;

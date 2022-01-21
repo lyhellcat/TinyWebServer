@@ -1,7 +1,11 @@
+/*
+ * @Author       : mark
+ * @Date         : 2020-06-17
+ * @copyleft Apache 2.0
+ */
 #include <cassert>
 
 #include "heaptimer.h"
-using namespace std;
 
 void HeapTimer::siftUp_(size_t i) {
     assert(i >= 0 && i < heap_.size());
@@ -43,21 +47,24 @@ void HeapTimer::add(int id, int timeout, const TimeoutCallBack& cb) {
     assert(id >= 0);
     size_t i;
     if (ref_.count(id) == 0) {
-        // New Node: End of Heap Insertion, Heap Adjustment
+        /* 新节点：堆尾插入，调整堆 */
         i = heap_.size();
         ref_[id] = i;
         heap_.push_back({id, Clock::now() + MS(timeout), cb});
         siftUp_(i);
     } else {
-        // Existing Node: Adjust Heap
+        /* 已有结点：调整堆 */
         i = ref_[id];
-        adjust(id, timeout);
+        heap_[i].expires = Clock::now() + MS(timeout);
         heap_[i].cb = cb;
+        if (!siftdown_(i, heap_.size())) {
+            siftUp_(i);
+        }
     }
 }
 
 void HeapTimer::doWork(int id) {
-    // Delete the specified id node and trigger the callback function
+    /* 删除指定id结点，并触发回调函数 */
     if (heap_.empty() || ref_.count(id) == 0) {
         return;
     }
@@ -68,9 +75,9 @@ void HeapTimer::doWork(int id) {
 }
 
 void HeapTimer::del_(size_t index) {
-    // Delete the node at the specified location
+    /* 删除指定位置的结点 */
     assert(!heap_.empty() && index >= 0 && index < heap_.size());
-    // Swap the node to be deleted to the end of the queue, then adjust the heap
+    /* 将要删除的结点换到队尾，然后调整堆 */
     size_t i = index;
     size_t n = heap_.size() - 1;
     assert(i <= n);
@@ -80,22 +87,21 @@ void HeapTimer::del_(size_t index) {
             siftUp_(i);
         }
     }
-    // Delete tail element
+    /* 队尾元素删除 */
     ref_.erase(heap_.back().id);
     heap_.pop_back();
 }
 
 void HeapTimer::adjust(int id, int timeout) {
-    // Adjust the node with the specified id
+    /* 调整指定id的结点 */
     assert(!heap_.empty() && ref_.count(id) > 0);
     heap_[ref_[id]].expires = Clock::now() + MS(timeout);
-    if (!siftdown_(ref_[id], heap_.size())) {
-        siftUp_(ref_[id]);
-    }
+    ;
+    siftdown_(ref_[id], heap_.size());
 }
 
 void HeapTimer::tick() {
-    // Clear timeout node
+    /* 清除超时结点 */
     if (heap_.empty()) {
         return;
     }
@@ -125,7 +131,7 @@ int HeapTimer::GetNextTick() {
     size_t res = -1;
     if (!heap_.empty()) {
         res =
-            chrono::duration_cast<MS>(heap_.front().expires - Clock::now())
+            std::chrono::duration_cast<MS>(heap_.front().expires - Clock::now())
                 .count();
         if (res < 0) {
             res = 0;
