@@ -31,3 +31,23 @@ private:
     std::mutex mtx_;
     sem_t semId_;
 };
+
+class SqlConnect {
+public:
+    SqlConnect(MYSQL **sql, SqlConnPool *connpool) {
+        assert(connpool);
+        *sql = connpool->GetConn();
+        sql_ = *sql;
+        connpool_ = connpool;
+    }
+
+    ~SqlConnect() {
+        if (sql_) {
+            connpool_->FreeConn(sql_);
+        }
+    }
+
+   private:
+    MYSQL *sql_;
+    SqlConnPool *connpool_;
+};

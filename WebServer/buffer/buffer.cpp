@@ -6,9 +6,7 @@
 using namespace std;
 
 Buffer::Buffer(int bufferSize)
-    : buffer_(1024), readPos_(0), writePos_(0) {
-    cout << "Call Buffer() ctor" << endl;
-}
+    : buffer_(bufferSize) {}
 
 size_t Buffer::ReadableBytes() const {
     return writePos_ - readPos_;
@@ -101,7 +99,7 @@ ssize_t Buffer::ReadFd(int fd, int &saveErrno) {
     } else if (static_cast<size_t>(len) <= writable) {
         writePos_ += len;
     } else {
-        writePos_ += buffer_.size();
+        writePos_ = buffer_.size();
         Append(buff, len - writable);
     }
     return len;

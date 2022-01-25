@@ -7,6 +7,7 @@
 #include "heaptimer.h"
 #include "Epoll.h"
 #include "ThreadPool.h"
+#include "sqlconnpool.h"
 
 class WebServer {
 public:
@@ -16,6 +17,7 @@ public:
            int logQueSize);
     ~WebServer();
     void Start();
+    void Stop();
 
 private:
     bool InitSocket_();

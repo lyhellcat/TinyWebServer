@@ -4,9 +4,7 @@ set(CMAKE_CXX_COMPILER /usr/bin/g++)
 project(Webserver CXX)
 
 set(CXX_FLAGS
- -g
- -DCHECK_PTHREAD_RETURN_VALUE
- -D_FILE_OFFSET_BITS=64
+ -O2
  -Wall
  -Wextra
  -Werror

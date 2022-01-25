@@ -57,6 +57,7 @@ void SqlConnPool::FreeConn(MYSQL* sql) {
 
 void SqlConnPool::ClosePool() {
     lock_guard<mutex> locker(mtx_);
+    // Close all SQL connection
     while (connQue_.empty() == false) {
         MYSQL *sql = connQue_.front();
         connQue_.pop();

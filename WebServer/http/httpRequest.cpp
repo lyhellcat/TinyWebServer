@@ -3,8 +3,8 @@
 #include <cassert>
 
 #include "httpRequest.h"
+#include "sqlconnpool.h"
 #include "log.h"
-#include "sqlconnRAII.h"
 
 using namespace std;
 
@@ -193,7 +193,7 @@ bool HttpRequest::UserVerify(const string &name, const string &pwd,
     }
     LOG_INFO("Verify name:%s pwd:%s", name.c_str(), pwd.c_str());
     MYSQL *sql;
-    SqlConnRAII(&sql, SqlConnPool::Instance());
+    SqlConnect(&sql, SqlConnPool::Instance());
     assert(sql);
 
     bool flag = false;

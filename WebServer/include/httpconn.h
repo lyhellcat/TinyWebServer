@@ -3,7 +3,6 @@
 #include <arpa/inet.h>
 
 #include "log.h"
-#include "sqlconnRAII.h"
 #include "buffer.h"
 #include "httpRequest.h"
 #include "httpResponse.h"
