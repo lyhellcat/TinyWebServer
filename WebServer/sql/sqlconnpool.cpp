@@ -46,7 +46,7 @@ void SqlConnPool::Init(const char *host, int port, const char *user,
 MYSQL* SqlConnPool::GetConn() { // Consumer
     MYSQL *sql = nullptr;
     if (connQue_.empty()) {
-        LOG_WARN("SqlConnPool busy");
+        LOG_WARN("SqlConnPool is busy");
         return nullptr;
     }
     sem_wait(&semId_);
@@ -68,7 +68,7 @@ void SqlConnPool::FreeConn(MYSQL* sql) { // Producer
 void SqlConnPool::ClosePool() {
     scoped_lock<mutex> locker(mtx_);
     // Close all SQL connection
-    while (connQue_.empty() == false) {
+    while (connQue_.size()) {
         MYSQL *sql = connQue_.front();
         connQue_.pop();
         mysql_close(sql);

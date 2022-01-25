@@ -24,8 +24,8 @@ void HttpConn::Init(int fd, const sockaddr_in& addr) {
     userCount++;
     addr_ = addr;
     fd_ = fd;
-    writeBuff_.RetrieveAll();
-    readBuff_.RetrieveAll();
+    writeBuff_.InitPtr();
+    readBuff_.InitPtr();
     isClose_ = false;
     LOG_INFO("Client[%d](%s:%d) in, userCount:%d", fd_, GetIP(), GetPort(),
              (int)userCount);
@@ -86,13 +86,13 @@ ssize_t HttpConn::write(int &saveErrno) {
                 (uint8_t*)iov_[1].iov_base + (len - iov_[0].iov_len);
             iov_[1].iov_len -= (len - iov_[0].iov_len);
             if (iov_[0].iov_len) {
-                writeBuff_.RetrieveAll();
+                writeBuff_.InitPtr();
                 iov_[0].iov_len = 0;
             }
         } else {
             iov_[0].iov_base = (uint8_t*)iov_[0].iov_base + len;
             iov_[0].iov_len -= len;
-            writeBuff_.Retrieve(len);
+            writeBuff_.UpdateReadPtr(len);
         }
     } while (isET || ToWriteBytes() > 10240);
     return len;
@@ -111,7 +111,7 @@ bool HttpConn::process() {
 
     response_.MakeResponse(writeBuff_);
     // Response header
-    iov_[0].iov_base = const_cast<char*>(writeBuff_.Peek());
+    iov_[0].iov_base = const_cast<char*>(writeBuff_.ReadPtr());
     iov_[0].iov_len = writeBuff_.ReadableBytes();
     iovCnt_ = 1;
 

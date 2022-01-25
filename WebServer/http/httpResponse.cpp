@@ -105,18 +105,18 @@ void HttpResponse::AddStateLine_(Buffer& buff) {
         code_ = 400;
         status = CODE_STATUS.find(400)->second;
     }
-    buff.Append("HTTP/1.1 " + to_string(code_) + " " + status + "\r\n");
+    buff.append("HTTP/1.1 " + to_string(code_) + " " + status + "\r\n");
 }
 
 void HttpResponse::AddHeader_(Buffer& buff) {
-    buff.Append("Connection: ");
+    buff.append("Connection: ");
     if (isKeepAlive_) {
-        buff.Append("keep-alive\r\n");
-        buff.Append("keep-alive: max=6, timeout=120\r\n");
+        buff.append("keep-alive\r\n");
+        buff.append("keep-alive: max=6, timeout=120\r\n");
     } else {
-        buff.Append("close\r\n");
+        buff.append("close\r\n");
     }
-    buff.Append("Content-type: " + GetFileType_() + "\r\n");
+    buff.append("Content-type: " + GetFileType_() + "\r\n");
 }
 
 void HttpResponse::AddContent_(Buffer &buff) {
@@ -135,7 +135,7 @@ void HttpResponse::AddContent_(Buffer &buff) {
     }
     m_File_ = (char*)mmRet;
     close(srcFd);
-    buff.Append("Content-length: " + to_string(m_FileState_.st_size) +
+    buff.append("Content-length: " + to_string(m_FileState_.st_size) +
                 "\r\n\r\n");
 }
 
@@ -173,6 +173,6 @@ void HttpResponse::ErrorContent(Buffer& buff, string message) {
     body += "<p>" + message + "</p>";
     body += "<hr><em>TinyWebServer</em></body></html>";
 
-    buff.Append("Content-length: " + to_string(body.size()) + "\r\n\r\n");
-    buff.Append(body);
+    buff.append("Content-length: " + to_string(body.size()) + "\r\n\r\n");
+    buff.append(body);
 }

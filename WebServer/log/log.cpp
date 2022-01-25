@@ -58,7 +58,7 @@ void Log::Init(int level=1, const char *path,
 
     {
         lock_guard<mutex> locker(mtx_);
-        buff_.RetrieveAll();
+        buff_.InitPtr();
         if (fp_) {
             flush();
             fclose(fp_);
@@ -114,7 +114,7 @@ void Log::write(int level, const char *format, ...) {
     {
         unique_lock<mutex> locker(mtx_);
         lineCount_++;
-        int n = snprintf(buff_.BeginWrite(), 128,
+        int n = snprintf(buff_.WritePtr(), 128,
                             "%d-%02d-%02d %02d:%02d:%02d.%06ld ",
                             t.tm_year + 1900, t.tm_mon + 1, t.tm_mday,
                             t.tm_hour, t.tm_min, t.tm_sec, now.tv_usec);
@@ -122,19 +122,19 @@ void Log::write(int level, const char *format, ...) {
         AppendLogLevelTitle_(level);
 
         va_start(vaList, format);
-        int m = vsnprintf(buff_.BeginWrite(), buff_.WritableBytes(), format,
+        int m = vsnprintf(buff_.WritePtr(), buff_.WritableBytes(), format,
                             vaList);
         va_end(vaList);
 
         buff_.HasWritten(m);
-        buff_.Append("\n\0", 2);
+        buff_.append("\n\0", 2);
 
         if (isAsync_ && deque_ && !deque_->full()) {
             deque_->push_back(buff_.RetrieveAllToStr());
         } else {
-            fputs(buff_.Peek(), fp_);
+            fputs(buff_.ReadPtr(), fp_);
         }
-        buff_.RetrieveAll();
+        buff_.InitPtr();
     }
 
 }
@@ -142,19 +142,19 @@ void Log::write(int level, const char *format, ...) {
 void Log::AppendLogLevelTitle_(int level) {
     switch (level) {
         case 0:
-            buff_.Append("[debug]: ", 9);
+            buff_.append("[debug]: ", 9);
             break;
         case 1:
-            buff_.Append("[info] : ", 9);
+            buff_.append("[info] : ", 9);
             break;
         case 2:
-            buff_.Append("[warn] : ", 9);
+            buff_.append("[warn] : ", 9);
             break;
         case 3:
-            buff_.Append("[error]: ", 9);
+            buff_.append("[error]: ", 9);
             break;
         default:
-            buff_.Append("[info] : ", 9);
+            buff_.append("[info] : ", 9);
             break;
     }
 }

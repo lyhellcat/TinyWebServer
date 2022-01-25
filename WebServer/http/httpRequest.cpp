@@ -38,8 +38,8 @@ bool HttpRequest::parse(Buffer& buff) {
         return false;
     }
     while (buff.ReadableBytes() && state_ != FINISH) {
-        const char *lineEnd = search(buff.Peek(), buff.ConstBeginWrite(), CRLF, CRLF + 2);
-        string line(buff.Peek(), lineEnd);
+        const char *lineEnd = search(buff.ReadPtr(), buff.ConstWritePtr(), CRLF, CRLF + 2);
+        string line(buff.ReadPtr(), lineEnd);
         switch (state_) {
         case REQUEST_LINE:
             if (!ParseRequestLine_(line)) {
@@ -59,11 +59,11 @@ bool HttpRequest::parse(Buffer& buff) {
         default:
             break;
         }
-        if (lineEnd == buff.BeginWrite()) {
-            buff.RetrieveAll();
+        if (lineEnd == buff.WritePtr()) {
+            buff.InitPtr();
             break;
         }
-        buff.RetrieveUntil(lineEnd + 2);
+        buff.UpdateReadPtrUntilEnd(lineEnd + 2);
     }
     LOG_DEBUG("[%s], [%s], [%s]", method_.c_str(), path_.c_str(), version_.c_str());
 
