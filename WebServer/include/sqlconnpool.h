@@ -8,11 +8,12 @@
 
 class SqlConnPool {
 public:
+    // Get sql connection pool instance
     static SqlConnPool *Instance();
-
+    // Get connection from pool
     MYSQL *GetConn();
     void FreeConn(MYSQL *conn);
-    int GetFreeConnCount();
+    int GetFreeConnCount() const; // Connection queue's size
 
     void Init(const char *host, int port,
             const char *user, const char *pwd,
@@ -24,11 +25,11 @@ private:
     ~SqlConnPool();
 
     int MAX_CONN_;
-    int use_count_{0};
+    int used_count_{0};
     int free_count_{0};
 
-    std::queue<MYSQL *> connQue_;
-    std::mutex mtx_;
+    std::queue<MYSQL *> connQue_;  // Ready queue for MySql conn
+    mutable std::mutex mtx_;
     sem_t semId_;
 };
 
