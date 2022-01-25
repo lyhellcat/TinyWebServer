@@ -15,7 +15,7 @@ void signal_handler(int signo) {
 
 int main() {
     server = new WebServer(
-        1388, 3, 60000, false,
+        1388, 3, 600000, false,
         3306, "root", "root", "Webserver",
         12, 6, false, 1,
         1024);

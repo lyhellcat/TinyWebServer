@@ -12,8 +12,7 @@ WebServer::WebServer(int port, int trigMode, int timeoutMS, bool OptLinger,
       isClose_(false),
       timer_(new HeapTimer()),
       threadpool_(new ThreadPool(threadNum)),
-      epoller_(new Epoll())
-      {
+      epoller_(new Epoll()) {
     srcDir_ = getcwd(nullptr, 256);
     assert(srcDir_);
     strncat(srcDir_, "/../resources/", 16);
@@ -41,7 +40,7 @@ WebServer::WebServer(int port, int trigMode, int timeoutMS, bool OptLinger,
                      threadNum);
         }
     }
-    LOG_INFO("Create SqlConnPool");
+    LOG_INFO("============== Create SqlConnPool =================");
     SqlConnPool::Instance()->Init("localhost", sqlPort, sqlUser, sqlPwd, dbName,
                                   connPoolNum);
 }
@@ -136,7 +135,7 @@ void WebServer::AddClient_(int fd, sockaddr_in addr) {
     assert(fd > 0);
     users_[fd].Init(fd, addr);
     if (timeoutMS_ > 0) {
-        timer_->add(fd, timeoutMS_,
+        timer_->addTimer(fd, timeoutMS_,
                     std::bind(&WebServer::CloseConn_, this, &users_[fd]));
     }
     epoller_->AddFd(fd, EPOLLIN | connEvent_);
@@ -192,7 +191,7 @@ void WebServer::OnRead_(HttpConn* client) {
 }
 
 void WebServer::OnProcess(HttpConn* client) {
-    if (client->process()) {
+    if (client->Handle()) {
         epoller_->ModifyFd(client->GetFd(), connEvent_ | EPOLLOUT);
     } else {
         epoller_->ModifyFd(client->GetFd(), connEvent_ | EPOLLIN);

@@ -98,7 +98,7 @@ ssize_t HttpConn::write(int &saveErrno) {
     return len;
 }
 
-bool HttpConn::process() {
+bool HttpConn::Handle() {
     request_.Init();
     if (readBuff_.ReadableBytes() <= 0) {
         return false;

@@ -16,6 +16,7 @@ public:
     bool ModifyFd(int fd, uint32_t events);
     bool DeleteFd(int fd);
 
+    // 返回就绪的文件描述符的个数
     int Wait(int timeoutMS=-1);
     int GetEventFd(size_t i) const;
     uint32_t GetEvents(size_t i) const;
