@@ -5,6 +5,7 @@
 #include "httpconn.h"
 using namespace std;
 
+// Init static variable
 const char* HttpConn::srcDir;
 atomic<int> HttpConn::userCount;
 bool HttpConn::isET;
@@ -19,6 +20,10 @@ HttpConn::~HttpConn() {
     Close();
 }
 
+/**
+ * @brief
+ * Init buffer pointer, set close status to false
+ */
 void HttpConn::Init(int fd, const sockaddr_in& addr) {
     assert(fd > 0);
     userCount++;
@@ -77,11 +82,10 @@ ssize_t HttpConn::write(int &saveErrno) {
             saveErrno = errno;
             break;
         }
-        // End write
+        // End of write
         if (iov_[0].iov_len + iov_[1].iov_len == 0) {
             break;
-        }
-        else if (static_cast<size_t>(len) > iov_[0].iov_len) {
+        } else if (static_cast<size_t>(len) > iov_[0].iov_len) {
             iov_[1].iov_base =
                 (uint8_t*)iov_[1].iov_base + (len - iov_[0].iov_len);
             iov_[1].iov_len -= (len - iov_[0].iov_len);
@@ -95,6 +99,7 @@ ssize_t HttpConn::write(int &saveErrno) {
             writeBuff_.UpdateReadPtr(len);
         }
     } while (isET || ToWriteBytes() > 10240);
+
     return len;
 }
 
@@ -115,7 +120,7 @@ bool HttpConn::Handle() {
     iov_[0].iov_len = writeBuff_.ReadableBytes();
     iovCnt_ = 1;
 
-    // Response file
+    // Set response file
     if (response_.FileLen() > 0 && response_.File()) {
         iov_[1].iov_base = response_.File();
         iov_[1].iov_len = response_.FileLen();
@@ -123,5 +128,6 @@ bool HttpConn::Handle() {
     }
     LOG_DEBUG("filesize:%d, %d  to %d", response_.FileLen(), iovCnt_,
               ToWriteBytes());
+
     return true;
 }

@@ -255,14 +255,15 @@ bool HttpRequest::UserVerify(const string &name, const string &pwd,
     return flag;
 }
 
-std::string HttpRequest::path() const { return path_; }
+string HttpRequest::path() const { return path_; }
 
-std::string &HttpRequest::path() { return path_; }
-std::string HttpRequest::method() const { return method_; }
+string &HttpRequest::path() { return path_; }
 
-std::string HttpRequest::version() const { return version_; }
+string HttpRequest::method() const { return method_; }
 
-std::string HttpRequest::GetPost(const std::string &key) const {
+string HttpRequest::version() const { return version_; }
+
+string HttpRequest::GetPost(const string &key) const {
     assert(key != "");
     if (post_.count(key) == 1) {
         return post_.find(key)->second;
