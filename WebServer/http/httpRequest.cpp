@@ -60,7 +60,7 @@ bool HttpRequest::parse(Buffer& buff) {
             break;
         }
         if (lineEnd == buff.WritePtr()) {
-            buff.InitPtr();
+            // buff.InitPtr();
             break;
         }
         buff.UpdateReadPtrUntilEnd(lineEnd + 2);

@@ -1,6 +1,8 @@
+#include "webserver.h"
+
 #include <signal.h>
 
-#include "webserver.h"
+using namespace std;
 
 WebServer *server;
 
@@ -15,11 +17,12 @@ void signal_handler(int signo) {
 
 int main() {
     server = new WebServer(
-        1388, 3, 600000, false,
+        8077, 3, 0, false,
         3306, "root", "root", "Webserver",
-        12, 6, false, 1,
+        12, 64, false, 1,
         1024);
-    struct sigaction action; action.sa_handler = signal_handler;
+    struct sigaction action;
+    action.sa_handler = signal_handler;
     sigaction(SIGINT, &action, NULL);
     server->Start();
 }

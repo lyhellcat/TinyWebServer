@@ -41,6 +41,7 @@ void HttpConn::Close() {
     if (isClose_ == false) {
         isClose_ = true;
         userCount--;
+        cout << "Close conn, " << userCount << endl;
         close(fd_);
         LOG_INFO("Client[%d](%s:%d) quit, UserCount:%d", fd_, GetIP(),
                  GetPort(), (int)userCount);
@@ -63,7 +64,7 @@ int HttpConn::GetPort() const {
     return addr_.sin_port;
 }
 
-ssize_t HttpConn::read(int& saveErrno) {
+ssize_t HttpConn::read(int* saveErrno) {
     ssize_t len = -1;
     do {
         len = readBuff_.ReadFd(fd_, saveErrno);
@@ -74,16 +75,16 @@ ssize_t HttpConn::read(int& saveErrno) {
     return len;
 }
 
-ssize_t HttpConn::write(int &saveErrno) {
+ssize_t HttpConn::write(int *saveErrno) {
     ssize_t len = -1;
     do {
         len = writev(fd_, iov_, iovCnt_);
         if (len <= 0) {
-            saveErrno = errno;
+            *saveErrno = errno;
             break;
         }
-        // End of write
-        if (iov_[0].iov_len + iov_[1].iov_len == 0) {
+
+        if (iov_[0].iov_len + iov_[1].iov_len == 0) {  // End of write
             break;
         } else if (static_cast<size_t>(len) > iov_[0].iov_len) {
             iov_[1].iov_base =

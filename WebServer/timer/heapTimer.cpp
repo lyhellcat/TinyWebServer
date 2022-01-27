@@ -1,4 +1,5 @@
 #include <cassert>
+#include <iostream>
 
 #include "heaptimer.h"
 using namespace std;
@@ -41,18 +42,21 @@ bool HeapTimer::siftdown_(size_t index, size_t n) {
     return i > index;
 }
 
-void HeapTimer::addTimer(int id, int timeout, const TimeoutCallBack& cb) {
-    assert(id >= 0);
+void HeapTimer::addTimer(int fd, int timeout, const TimeoutCallBack& cb) {
+    cout << "call add Timer" << endl;
+    assert(fd >= 0);
     size_t i;
-    if (ref_.count(id) == 0) {
+    if (ref_.count(fd) == 0) {
         // 将新节点插入堆尾, 并调整堆
         i = heap_.size();
-        ref_[id] = i;
-        heap_.push_back({id, Clock::now() + MS(timeout), cb});
+        ref_[fd] = i;
+        heap_.push_back({fd, Clock::now() + MS(timeout), cb});
         siftUp_(i);
+        cout << "push_back: " << heap_.size() << endl;
     } else {
+        cout << "已有节点" << endl;
         // 该节点是已有节点, 只需要调整堆
-        i = ref_[id];
+        i = ref_[fd];
         heap_[i].expires = Clock::now() + MS(timeout);
         heap_[i].cb = cb;
         if (!siftdown_(i, heap_.size())) {
@@ -61,14 +65,18 @@ void HeapTimer::addTimer(int id, int timeout, const TimeoutCallBack& cb) {
     }
 }
 
-void HeapTimer::doWork(int id) {
-    if (heap_.empty() || ref_.count(id) == 0) {
+void HeapTimer::doWork(int fd) {
+    cout << "Call Dowork" << endl;
+    if (heap_.empty() || ref_.count(fd) == 0) {
+        cout << "Not found in heap " << endl;
         return;
     }
-    size_t i = ref_[id];
+    cout << "Found " << endl;
+    size_t i = ref_[fd];
     TimerNode node = heap_[i];
-    node.cb();
+    // node.cb();
     del_(i);
+    cout << "Do work, " << heap_.size() << endl;
 }
 
 void HeapTimer::del_(size_t index) {
@@ -89,11 +97,11 @@ void HeapTimer::del_(size_t index) {
     heap_.pop_back();
 }
 
-void HeapTimer::adjust(int id, int timeout) {
+void HeapTimer::adjust(int fd, int timeout) {
     // 调整index指定的节点
-    assert(!heap_.empty() && ref_.count(id) > 0);
-    heap_[ref_[id]].expires = Clock::now() + MS(timeout);
-    siftdown_(ref_[id], heap_.size());
+    assert(!heap_.empty() && ref_.count(fd) > 0);
+    heap_[ref_[fd]].expires = Clock::now() + MS(timeout);
+    siftdown_(ref_[fd], heap_.size());
 }
 
 void HeapTimer::tick() {
@@ -101,14 +109,18 @@ void HeapTimer::tick() {
     if (heap_.empty()) {
         return;
     }
-    while (!heap_.empty()) {
+    // if (heap_.size() != 4090)
+    //     cout << heap_.size() << endl;
+    while (heap_.size()) {
         TimerNode node = heap_.front();
         if (std::chrono::duration_cast<MS>(node.expires - Clock::now())
                 .count() > 0) {
             break;
         }
         node.cb();
+        assert(heap_.size());
         pop();
+        cout << "In pop, " << heap_.size() << endl;
     }
 }
 

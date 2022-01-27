@@ -31,11 +31,11 @@ public:
     HeapTimer() { heap_.reserve(64); }
     ~HeapTimer() { clear(); }
 
-    void adjust(int id, int newExpires);
+    void adjust(int fd, int newExpires);
     // 添加定时器
-    void addTimer(int id, int timeOut, const TimeoutCallBack &cb);
+    void addTimer(int fd, int timeOut, const TimeoutCallBack &cb);
     // 删除id指定的节点, 并触发回调函数
-    void doWork(int id);
+    void doWork(int fd);
     void clear();
     void tick();
     void pop();

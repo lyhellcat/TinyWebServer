@@ -13,8 +13,8 @@ public:
     ~HttpConn();
 
     void Init(int sockFd, const sockaddr_in &addr);
-    ssize_t read(int &saveErrno);
-    ssize_t write(int &saveErrno);
+    ssize_t read(int *saveErrno);
+    ssize_t write(int *saveErrno);
     void Close();
     // 处理HTTP连接, 逻辑为解析request, 生成response
     bool Handle();

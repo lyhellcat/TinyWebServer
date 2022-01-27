@@ -46,8 +46,8 @@ public:
     void append(const Buffer &buff);
 
     // IO interface
-    ssize_t ReadFd(int fd, int &Errno);
-    ssize_t WriteFd(int fd, int &Errno);
+    ssize_t ReadFd(int fd, int *Errno);
+    ssize_t WriteFd(int fd, int *Errno);
 
 private:
     // 缓冲区初始位置指针

@@ -92,7 +92,7 @@ void Buffer::EnsureWriteable(size_t len) {
     assert(WritableBytes() >= len);
 }
 
-ssize_t Buffer::ReadFd(int fd, int &saveErrno) {
+ssize_t Buffer::ReadFd(int fd, int *saveErrno) {
     char buff[1 << 16];
     struct iovec iov[2];
     const size_t writable = WritableBytes();
@@ -100,10 +100,11 @@ ssize_t Buffer::ReadFd(int fd, int &saveErrno) {
     iov[0].iov_len = writable;
     iov[1].iov_base = buff;
     iov[1].iov_len = sizeof(buff);
+
     // 使用readv可以分散接收数据
     const ssize_t len = readv(fd, iov, 2);
     if (len < 0) {
-        saveErrno = errno;
+        *saveErrno = errno;
     } else if (static_cast<size_t>(len) <= writable) {
         writePos_ += len;
     } else {
@@ -113,11 +114,11 @@ ssize_t Buffer::ReadFd(int fd, int &saveErrno) {
     return len;
 }
 
-ssize_t Buffer::WriteFd(int fd, int &saveErrno) {
+ssize_t Buffer::WriteFd(int fd, int *saveErrno) {
     ssize_t readSize = ReadableBytes();
     ssize_t len = write(fd, ReadPtr(), readSize);
     if (len < 0) {
-        saveErrno = errno;
+        *saveErrno = errno;
         return len;
     }
     readPos_ += len;
@@ -133,7 +134,7 @@ void Buffer::AllocSpace_(size_t len) {
         size_t readable = ReadableBytes();
         copy(BeginPtr_() + readPos_, BeginPtr_() + writePos_, BeginPtr_());
         readPos_ = 0;
-        writePos_ = readPos_ + readable;
+        writePos_ = readable;
         assert(readable == ReadableBytes());
     }
 }

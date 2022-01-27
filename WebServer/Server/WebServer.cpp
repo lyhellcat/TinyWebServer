@@ -19,10 +19,6 @@ WebServer::WebServer(int port, int trigMode, int timeoutMS, bool OptLinger,
     HttpConn::userCount = 0;
     HttpConn::srcDir = srcDir_;
 
-    InitEventMode_(trigMode);
-    if (!InitSocket_()) {
-        isClose_ = true;
-    }
     if (openLog) {
         Log::Instance()->Init(logLevel, "./log", ".log", logQueSize);
         if (isClose_) {
@@ -39,6 +35,10 @@ WebServer::WebServer(int port, int trigMode, int timeoutMS, bool OptLinger,
             LOG_INFO("SqlConnPool num: %d, ThreadPool num: %d", connPoolNum,
                      threadNum);
         }
+    }
+    InitEventMode_(trigMode);
+    if (!InitSocket_()) {
+        isClose_ = true;
     }
     LOG_INFO("============== Create SqlConnPool =================");
     SqlConnPool::Instance()->Init("localhost", sqlPort, sqlUser, sqlPwd, dbName,
@@ -125,7 +125,6 @@ void WebServer::SendError_(int fd, const char* info) {
 }
 
 void WebServer::CloseConn_(HttpConn* client) {
-    assert(client);
     LOG_INFO("Client[%d] quit!", client->GetFd());
     epoller_->DeleteFd(client->GetFd());
     client->Close();
@@ -136,11 +135,11 @@ void WebServer::AddClient_(int fd, sockaddr_in addr) {
     users_[fd].Init(fd, addr);
     if (timeoutMS_ > 0) {
         timer_->addTimer(fd, timeoutMS_,
-                    std::bind(&WebServer::CloseConn_, this, &users_[fd]));
+                    bind(&WebServer::CloseConn_, this, &users_[fd]));
     }
-    epoller_->AddFd(fd, EPOLLIN | connEvent_);
+    assert(epoller_->AddFd(fd, EPOLLIN | connEvent_));
     SetFdNonblock(fd);
-    LOG_INFO("Client[%d] in!", users_[fd].GetFd());
+    LOG_INFO("Client[%d] in!", fd);
 }
 
 void WebServer::DealListen_() {
@@ -156,6 +155,7 @@ void WebServer::DealListen_() {
             return;
         }
         AddClient_(fd, addr);
+        cout << "In listen, " << HttpConn::userCount << endl;
     } while (listenEvent_ & EPOLLET);
 }
 
@@ -182,7 +182,7 @@ void WebServer::OnRead_(HttpConn* client) {
     assert(client);
     int ret = -1;
     int readErrno = 0;
-    ret = client->read(readErrno);
+    ret = client->read(&readErrno);
     if (ret <= 0 && readErrno != EAGAIN) {
         CloseConn_(client);
         return;
@@ -202,7 +202,7 @@ void WebServer::OnWrite_(HttpConn* client) {
     assert(client);
     int ret = -1;
     int writeErrno = 0;
-    ret = client->write(writeErrno);
+    ret = client->write(&writeErrno);
     if (client->ToWriteBytes() == 0) {
         // Transfer completed
         if (client->IsKeepAlive()) {
@@ -224,13 +224,15 @@ bool WebServer::InitSocket_() {
     int ret;
     struct sockaddr_in addr;
     if (port_ > 65535 || port_ < 1024) {
-        LOG_ERROR("Port:%d error!", port_);
+        LOG_ERROR("Port number:%d error!", port_);
         return false;
     }
+
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_port = htons(port_);
     struct linger optLinger = {0};
+
     if (openLinger_) {
         // Until the remaining data is sent or timed out
         optLinger.l_onoff = 1;
@@ -275,6 +277,7 @@ bool WebServer::InitSocket_() {
         close(listenFd_);
         return false;
     }
+
     ret = epoller_->AddFd(listenFd_, listenEvent_ | EPOLLIN);
     if (ret == 0) {
         LOG_ERROR("Add listen error!");

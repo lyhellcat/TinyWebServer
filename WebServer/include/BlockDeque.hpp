@@ -3,7 +3,6 @@
 #include <deque>
 #include <condition_variable>
 #include <sys/time.h>
-using namespace std;
 
 template<class T>
 class BlockDeque {
@@ -71,25 +70,25 @@ void BlockDeque<T>::clear() {
 
 template<class T>
 T BlockDeque<T>::front() const {
-    lock_guard<std::mutex> locker(mtx_);
+    std::lock_guard<std::mutex> locker(mtx_);
     return deq_.front();
 }
 
 template<class T>
 T BlockDeque<T>::back() const {
-    lock_guard<std::mutex> locker(mtx_);
+    std::lock_guard<std::mutex> locker(mtx_);
     return deq_.back();
 }
 
 template<class T>
 size_t BlockDeque<T>::capacity() const {
-    lock_guard<std::mutex> locker(mtx_);
+    std::lock_guard<std::mutex> locker(mtx_);
     return capacity_;
 }
 
 template<class T>
 void BlockDeque<T>::push_back(const T &item) {
-    unique_lock<mutex> locker(mtx_);
+    std::unique_lock<std::mutex> locker(mtx_);
     while (deq_.size() >= capacity_) {
         condConsumer_.wait(locker);
     }
@@ -99,7 +98,7 @@ void BlockDeque<T>::push_back(const T &item) {
 
 template<class T>
 void BlockDeque<T>::push_front(const T &item) {
-    unique_lock<mutex> locker(mtx_);
+    std::unique_lock<std::mutex> locker(mtx_);
     while (deq_.size() >= capacity_) {
         condConsumer_.wait(locker);
     }
@@ -109,19 +108,19 @@ void BlockDeque<T>::push_front(const T &item) {
 
 template<class T>
 bool BlockDeque<T>::empty() const {
-    lock_guard<mutex> locker(mtx_);
+    std::scoped_lock<std::mutex> locker(mtx_);
     return deq_.empty();
 }
 
 template<class T>
 bool BlockDeque<T>::full() const {
-    lock_guard<mutex> locker(mtx_);
+    std::scoped_lock<std::mutex> locker(mtx_);
     return deq_.size() >= capacity_;
 }
 
 template<class T>
 bool BlockDeque<T>::pop_front(T &item) {
-    unique_lock<mutex> locker(mtx_);
+    std::unique_lock<std::mutex> locker(mtx_);
     while (deq_.empty()) {
         condConsumer_.wait(locker);
         if (isClose_) {
@@ -137,10 +136,10 @@ bool BlockDeque<T>::pop_front(T &item) {
 
 template<class T>
 bool BlockDeque<T>::pop_front(T &item, int timeout) {
-    unique_lock<mutex> locker(mtx_);
+    std::unique_lock<std::mutex> locker(mtx_);
     while (deq_.empty()) {
-        if (condConsumer_.wait_for(locker, chrono::seconds(timeout))
-                == cv_status::timeout) {
+        if (condConsumer_.wait_for(locker, std::chrono::seconds(timeout))
+                == std::cv_status::timeout) {
             return false;
         }
         if (isClose_) {

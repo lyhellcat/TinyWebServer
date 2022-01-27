@@ -5,15 +5,15 @@
 #include <thread>
 #include <condition_variable>
 #include <functional>
-#include <sys/sysinfo.h>
 
 class ThreadPool {
 public:
     explicit ThreadPool(size_t threadNum=-1) : pool_(std::make_shared<Pool>()) {
         if (threadNum <= 0) {
-            threadNum = get_nprocs() + 1;
+            threadNum = std::thread::hardware_concurrency() + 1;
         }
         for (int i = 0; i < threadNum; i++) {
+            // Create work thread
             std::thread([pool = pool_] {
                 std::unique_lock<std::mutex> locker(pool->mtx);
                 while (1) {
@@ -55,7 +55,7 @@ public:
 
 private:
     struct Pool {
-        bool isStop;
+        std::atomic_bool isStop;
         std::mutex mtx;
         std::condition_variable cond;
         std::queue<std::function<void()>> tasks;

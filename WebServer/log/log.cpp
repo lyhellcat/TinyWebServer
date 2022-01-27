@@ -57,7 +57,7 @@ void Log::Init(int level=1, const char *path,
     toDay_ = t.tm_mday;
 
     {
-        lock_guard<mutex> locker(mtx_);
+        scoped_lock<mutex> locker(mtx_);
         buff_.InitPtr();
         if (fp_) {
             flush();

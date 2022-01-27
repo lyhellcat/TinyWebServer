@@ -126,6 +126,7 @@ void HttpResponse::AddContent_(Buffer &buff) {
         return;
     }
     LOG_DEBUG("file path %s", (srcDir_ + path_).data());
+
     // Using mmap() Mapping files to memory improves file access speed
     int* mmRet =
         (int*)mmap(0, m_FileState_.st_size, PROT_READ, MAP_PRIVATE, srcFd, 0);
@@ -133,6 +134,7 @@ void HttpResponse::AddContent_(Buffer &buff) {
         ErrorContent(buff, "File NotFound!");
         return;
     }
+
     m_File_ = (char*)mmRet;
     close(srcFd);
     buff.append("Content-length: " + to_string(m_FileState_.st_size) +
