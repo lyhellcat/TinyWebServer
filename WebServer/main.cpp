@@ -19,10 +19,10 @@ int main() {
     server = new WebServer(
         8077, 3, 0, false,
         3306, "root", "root", "Webserver",
-        12, 64, false, 1,
+        12, 13, false, 1,
         1024);
     struct sigaction action;
     action.sa_handler = signal_handler;
     sigaction(SIGINT, &action, NULL);
-    server->Start();
+    server->Run();
 }

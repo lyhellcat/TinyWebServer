@@ -1,3 +1,4 @@
+// Fixme: change to std::priority_queue
 #include <cassert>
 #include <iostream>
 
@@ -74,9 +75,7 @@ void HeapTimer::doWork(int fd) {
     cout << "Found " << endl;
     size_t i = ref_[fd];
     TimerNode node = heap_[i];
-    // node.cb();
     del_(i);
-    cout << "Do work, " << heap_.size() << endl;
 }
 
 void HeapTimer::del_(size_t index) {

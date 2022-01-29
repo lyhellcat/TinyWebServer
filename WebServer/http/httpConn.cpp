@@ -22,10 +22,9 @@ HttpConn::~HttpConn() {
 
 /**
  * @brief
- * Init buffer pointer, set close status to false
+ * Init buffer pointer, set isClose_ status to false
  */
 void HttpConn::Init(int fd, const sockaddr_in& addr) {
-    assert(fd > 0);
     userCount++;
     addr_ = addr;
     fd_ = fd;
@@ -41,7 +40,6 @@ void HttpConn::Close() {
     if (isClose_ == false) {
         isClose_ = true;
         userCount--;
-        cout << "Close conn, " << userCount << endl;
         close(fd_);
         LOG_INFO("Client[%d](%s:%d) quit, UserCount:%d", fd_, GetIP(),
                  GetPort(), (int)userCount);
@@ -115,7 +113,8 @@ bool HttpConn::Handle() {
         response_.Init(srcDir, request_.path(), false, 400);
     }
 
-    response_.MakeResponse(writeBuff_);
+    // response_.MakeResponse(writeBuff_);
+    writeBuff_.append("HTTP/1.1 200 OK\r\nConnection: close\r\nContent-type: text/html\r\nContent-length: 1\r\n\r\nH");
     // Response header
     iov_[0].iov_base = const_cast<char*>(writeBuff_.ReadPtr());
     iov_[0].iov_len = writeBuff_.ReadableBytes();

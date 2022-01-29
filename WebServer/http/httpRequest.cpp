@@ -86,15 +86,18 @@ void HttpRequest::ParsePath_() {
 }
 
 bool HttpRequest::ParseRequestLine_(const string &line) {
-    regex patten("^([^ ]*) ([^ ]*) HTTP/([^ ]*)$");
-    smatch subMatch;
-    if (regex_match(line, subMatch, patten)) {
-        method_ = subMatch[1];
-        path_ = subMatch[2];
-        version_ = subMatch[3];
-        state_ = HEADERS;
+    // regex patten("^([^ ]*) ([^ ]*) HTTP/([^ ]*)$");
+    // smatch subMatch;
+    // if (regex_match(line, subMatch, patten)) {
+        // method_ = subMatch[1];
+        // path_ = subMatch[2];
+        // version_ = subMatch[3];
+        // state_ = HEADERS;
+        method_ = "GET";
+        path_ = "/";
+        version_ = "1.1";
         return true;
-    }
+    // }
     LOG_ERROR("RequestLine Error");
     return false;
 }

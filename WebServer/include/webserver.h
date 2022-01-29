@@ -16,7 +16,7 @@ public:
            int connPoolNum, int threadNum, bool openLog, int logLevel,
            int logQueSize);
     ~WebServer();
-    void Start();
+    void Run();
     void Stop();
 
 private:
@@ -25,25 +25,24 @@ private:
     void AddClient_(int fd, sockaddr_in addr);
 
     void DealListen_();
-    void DealWrite_(HttpConn* client);
-    void DealRead_(HttpConn* client);
+    void DealWrite_(HttpConn *client);
+    void DealRead_(HttpConn *client);
 
-    void SendError_(int fd, const char*info);
-    void ExtentTime_(HttpConn* client);
-    void CloseConn_(HttpConn* client);
+    void ExtentTime_(HttpConn *client);
+    void CloseConn_(HttpConn *client);
 
-    void OnRead_(HttpConn* client);
-    void OnWrite_(HttpConn* client);
-    void OnProcess(HttpConn* client);
+    void OnRead_(HttpConn *client);
+    void OnWrite_(HttpConn *client);
+    void OnProcess_(HttpConn *client);
 
-    static const int MAX_FD = 65536;
+    static const int MAX_FD = 1 << 16;
 
-    static int SetFdNonblock(int fd);
+    static int SetFdNonblock_(int fd);
 
     int port_;
     bool openLinger_;
     int timeoutMS_;
-    bool isClose_;
+    bool isClosed_;
     int listenFd_;
     char* srcDir_;
 
@@ -52,6 +51,6 @@ private:
 
     std::unique_ptr<HeapTimer> timer_;
     std::unique_ptr<ThreadPool> threadpool_;
-    std::unique_ptr<Epoll> epoller_;
+    std::unique_ptr<Epoll> epoll_;
     std::unordered_map<int, HttpConn> users_;
 };
