@@ -16,16 +16,18 @@ public:
     ssize_t read(int *saveErrno);
     ssize_t write(int *saveErrno);
     void Close();
-    // 处理HTTP连接, 逻辑为解析request, 生成response
+    // Process HTTP connections, the logic is to parse the request and generate
+    // the response
     bool Handle();
 
-    // 获取连接信息的接口
+    // Interface to get connection information
     int GetFd() const;
     int GetPort() const;
     const char* GetIP() const;
     sockaddr_in GetAddr() const;
 
-    int ToWriteBytes() { // 需要写入的数据量
+    // The amount of data that needs to be written
+    int ToWriteBytes() {
         return iov_[0].iov_len + iov_[1].iov_len;
     }
 
@@ -35,17 +37,17 @@ public:
 
     static bool isET;
     static const char* srcDir;
-    static std::atomic<int> userCount; // 所有HTTP连接的个数
+    static std::atomic<int> userCount; // The number of all HTTP connections
 
 private:
-    int fd_;         // HTTP连接对应的描述符
-    bool isClose_;   // 连接是否被关闭
+    int fd_;         // Descriptor for HTTP connection
+    bool isClose_;
 
     struct sockaddr_in addr_;
 
     int iovCnt_;
-    struct iovec iov_[2];
-    // 读写缓冲区
+    struct iovec iov_[2];  // for writev(), centralized output
+    // Read and write buffer
     Buffer readBuff_;
     Buffer writeBuff_;
 

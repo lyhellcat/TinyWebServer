@@ -1,4 +1,5 @@
 #pragma once
+
 #include <unordered_map>
 #include <unordered_set>
 
@@ -8,7 +9,7 @@ class HttpRequest {
 public:
     enum PARSE_STATE {
         REQUEST_LINE,
-        HEADERS,
+        HEADER,
         BODY,
         FINISH
     };

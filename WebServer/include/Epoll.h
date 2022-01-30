@@ -8,7 +8,7 @@
 
 class Epoll {
 public:
-    explicit Epoll(int maxEvent=1024);
+    explicit Epoll(int maxEvent=4096);
     ~Epoll();
 
     // File descriptor related operations

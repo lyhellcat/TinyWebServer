@@ -101,7 +101,7 @@ ssize_t Buffer::ReadFd(int fd, int *saveErrno) {
     iov[1].iov_base = buff;
     iov[1].iov_len = sizeof(buff);
 
-    // 使用readv可以分散接收数据
+    // Use readv to scatter input data
     const ssize_t len = readv(fd, iov, 2);
     if (len < 0) {
         *saveErrno = errno;

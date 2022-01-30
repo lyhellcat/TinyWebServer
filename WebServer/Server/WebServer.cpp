@@ -202,7 +202,7 @@ void WebServer::AddClient_(int fd, sockaddr_in addr) {
         timer_->addTimer(fd, timeoutMS_,
                     bind(&WebServer::CloseConn_, this, &users_[fd]));
     }
-    assert(epoll_->AddFd(fd, EPOLLIN | connEvent_));
+    epoll_->AddFd(fd, EPOLLIN | connEvent_);
     SetFdNonblock_(fd);
     LOG_INFO("Client[%d] in!", fd);
 }
@@ -213,6 +213,7 @@ void WebServer::DealListen_() {
     do {
         int fd = accept(listenFd_, (struct sockaddr*)&addr, &len);
         if (fd <= 0) {
+            // accept() on success should return nonnegative int
             return;
         } else if (HttpConn::userCount >= MAX_FD) {
             LOG_WARN("Clients is full, server busy");

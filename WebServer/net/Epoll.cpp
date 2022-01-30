@@ -4,7 +4,7 @@
 
 Epoll::Epoll(int maxEvent) : epoll_fd_(epoll_create1(0)),
     events_(maxEvent) {
-    assert(epoll_fd_ >= 0 && events_.size() > 0);
+    assert(epoll_fd_ >= 0 && events_.size() == maxEvent);
 }
 
 Epoll::~Epoll() {

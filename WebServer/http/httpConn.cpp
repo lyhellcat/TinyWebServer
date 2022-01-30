@@ -69,7 +69,7 @@ ssize_t HttpConn::read(int* saveErrno) {
         if (len <= 0) {
             break;
         }
-    } while (isET);
+    } while (isET); // ET非阻塞边缘触发需要循环接收数据
     return len;
 }
 
@@ -97,7 +97,7 @@ ssize_t HttpConn::write(int *saveErrno) {
             iov_[0].iov_len -= len;
             writeBuff_.UpdateReadPtr(len);
         }
-    } while (isET || ToWriteBytes() > 10240);
+    } while (isET || ToWriteBytes() > 10240); // ET模式循环发送数据
 
     return len;
 }
@@ -113,9 +113,9 @@ bool HttpConn::Handle() {
         response_.Init(srcDir, request_.path(), false, 400);
     }
 
-    // response_.MakeResponse(writeBuff_);
-    writeBuff_.append("HTTP/1.1 200 OK\r\nConnection: close\r\nContent-type: text/html\r\nContent-length: 1\r\n\r\nH");
-    // Response header
+    response_.MakeResponse(writeBuff_);
+
+    // Write writeBuff_ to response
     iov_[0].iov_base = const_cast<char*>(writeBuff_.ReadPtr());
     iov_[0].iov_len = writeBuff_.ReadableBytes();
     iovCnt_ = 1;
