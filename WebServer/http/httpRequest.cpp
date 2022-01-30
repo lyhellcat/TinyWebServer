@@ -38,8 +38,10 @@ bool HttpRequest::parse(Buffer& buff) {
         return false;
     }
     while (buff.ReadableBytes() && state_ != FINISH) {
+        // Find "\r\n" in request
         const char *lineEnd = search(buff.ReadPtr(), buff.ConstWritePtr(), CRLF, CRLF + 2);
         string line(buff.ReadPtr(), lineEnd);
+
         switch (state_) {
         case REQUEST_LINE:
             if (!ParseRequestLine_(line)) {
@@ -85,6 +87,9 @@ void HttpRequest::ParsePath_() {
 }
 
 bool HttpRequest::ParseRequestLine_(const string &line) {
+    // stringstream ss(line);
+    // ss >> method_ >> path_ >> version_;
+    // version_ = version_.substr(5);
     regex patten("^([^ ]*) ([^ ]*) HTTP/([^ ]*)$");
     smatch subMatch;
     if (regex_match(line, subMatch, patten)) {
@@ -95,14 +100,15 @@ bool HttpRequest::ParseRequestLine_(const string &line) {
         // method_ = "GET";
         // path_ = "/";
         // version_ = "1.1";
-        // return true;
+        return true;
     }
     LOG_ERROR("RequestLine Error");
     return false;
 }
 
 void HttpRequest::ParseHeader_(const string &line) {
-    regex patten("^([^:]*): ?(.*)$");
+    // Header  Key: value
+    regex patten("^([^ :]*): ?(.*)$");
     smatch subMatch;
     if (regex_match(line, subMatch, patten)) {
         header_[subMatch[1]] = subMatch[2];
