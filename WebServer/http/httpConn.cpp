@@ -74,6 +74,7 @@ ssize_t HttpConn::read(int* saveErrno) {
 }
 
 ssize_t HttpConn::write(int *saveErrno) {
+    // Write HTTP response line, header, body(file) to fd_
     ssize_t len = -1;
     do {
         len = writev(fd_, iov_, iovCnt_);

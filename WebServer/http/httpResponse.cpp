@@ -54,7 +54,7 @@ HttpResponse::~HttpResponse() {
     UnmapFile();
 }
 
-void HttpResponse::Init(const string& srcDir, string& path,
+void HttpResponse::Init(const string &srcDir, string &path,
                         bool isKeepAlive, int code) {
     if (file_) {
         UnmapFile();
@@ -68,8 +68,8 @@ void HttpResponse::Init(const string& srcDir, string& path,
 }
 
 void HttpResponse::MakeResponse(Buffer &buff) {
-    if (stat((srcDir_ + path_).data(), &fileState_) < 0 ||
-        S_ISDIR(fileState_.st_mode)) {
+    if (stat((srcDir_ + path_).data(), &fileState_) < 0
+        || S_ISDIR(fileState_.st_mode)) { // File does not exists or file is directory
         code_ = 404;
     } else if (!(fileState_.st_mode & S_IROTH)) {
         code_ = 403;
@@ -128,17 +128,17 @@ void HttpResponse::AddContent_(Buffer &buff) {
     LOG_DEBUG("file path %s", (srcDir_ + path_).data());
 
     // Using mmap() Mapping files to memory improves file access speed
-    int* mmRet =
-        (int*)mmap(0, fileState_.st_size, PROT_READ, MAP_PRIVATE, srcFd, 0);
-    if (*mmRet == -1) {
+    file_ =
+        static_cast<char*>(mmap(0, fileState_.st_size, PROT_READ, MAP_PRIVATE, srcFd, 0));
+    if (file_ == MAP_FAILED) {
         ErrorContent(buff, "File NotFound!");
+        close(srcFd);
         return;
     }
 
-    file_ = (char*)mmRet;
     close(srcFd);
-    buff.append("Content-length: " + to_string(fileState_.st_size) +
-                "\r\n\r\n");
+    // Header + blank
+    buff.append("Content-length: " + to_string(fileState_.st_size) + "\r\n\r\n");
 }
 
 void HttpResponse::UnmapFile() {
