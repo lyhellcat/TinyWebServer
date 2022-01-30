@@ -46,8 +46,8 @@ HttpResponse::HttpResponse() {
     code_ = -1;
     path_ = srcDir_ = "";
     isKeepAlive_ = false;
-    m_File_ = nullptr;
-    m_FileState_ = {0};
+    file_ = nullptr;
+    fileState_ = {0};
 };
 
 HttpResponse::~HttpResponse() {
@@ -56,22 +56,22 @@ HttpResponse::~HttpResponse() {
 
 void HttpResponse::Init(const string& srcDir, string& path,
                         bool isKeepAlive, int code) {
-    if (m_File_) {
+    if (file_) {
         UnmapFile();
     }
     code_ = code;
     isKeepAlive_ = isKeepAlive;
     path_ = path;
     srcDir_ = srcDir;
-    m_File_ = nullptr;
-    m_FileState_ = {0};
+    file_ = nullptr;
+    fileState_ = {0};
 }
 
 void HttpResponse::MakeResponse(Buffer &buff) {
-    if (stat((srcDir_ + path_).data(), &m_FileState_) < 0 ||
-        S_ISDIR(m_FileState_.st_mode)) {
+    if (stat((srcDir_ + path_).data(), &fileState_) < 0 ||
+        S_ISDIR(fileState_.st_mode)) {
         code_ = 404;
-    } else if (!(m_FileState_.st_mode & S_IROTH)) {
+    } else if (!(fileState_.st_mode & S_IROTH)) {
         code_ = 403;
     } else if (code_ == -1) {
         code_ = 200;
@@ -83,17 +83,17 @@ void HttpResponse::MakeResponse(Buffer &buff) {
 }
 
 char* HttpResponse::File() {
-    return m_File_;
+    return file_;
 }
 
 size_t HttpResponse::FileLen() const {
-    return m_FileState_.st_size;
+    return fileState_.st_size;
 }
 
 void HttpResponse::ErrorHtml_() {
     if (CODE_PATH.count(code_) == 1) {
         path_ = CODE_PATH.find(code_)->second;
-        stat((srcDir_ + path_).data(), &m_FileState_);
+        stat((srcDir_ + path_).data(), &fileState_);
     }
 }
 
@@ -129,22 +129,22 @@ void HttpResponse::AddContent_(Buffer &buff) {
 
     // Using mmap() Mapping files to memory improves file access speed
     int* mmRet =
-        (int*)mmap(0, m_FileState_.st_size, PROT_READ, MAP_PRIVATE, srcFd, 0);
+        (int*)mmap(0, fileState_.st_size, PROT_READ, MAP_PRIVATE, srcFd, 0);
     if (*mmRet == -1) {
         ErrorContent(buff, "File NotFound!");
         return;
     }
 
-    m_File_ = (char*)mmRet;
+    file_ = (char*)mmRet;
     close(srcFd);
-    buff.append("Content-length: " + to_string(m_FileState_.st_size) +
+    buff.append("Content-length: " + to_string(fileState_.st_size) +
                 "\r\n\r\n");
 }
 
 void HttpResponse::UnmapFile() {
-    if (m_File_) {
-        munmap(m_File_, m_FileState_.st_size);
-        m_File_ = nullptr;
+    if (file_) {
+        munmap(file_, fileState_.st_size);
+        file_ = nullptr;
     }
 }
 

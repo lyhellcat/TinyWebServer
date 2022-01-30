@@ -31,8 +31,8 @@ private:
     std::string path_;
     std::string srcDir_;
 
-    char *m_File_;
-    struct stat m_FileState_;
+    char *file_;
+    struct stat fileState_;
 
     static const std::unordered_map<std::string, std::string> SUFFIX_TYPE;
     static const std::unordered_map<int, std::string> CODE_STATUS;

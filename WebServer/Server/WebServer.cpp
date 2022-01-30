@@ -2,12 +2,12 @@
 
 using namespace std;
 
-WebServer::WebServer(int port, int trigMode, int timeoutMS, bool OptLinger,
+WebServer::WebServer(int port, int trigger_mode, int timeoutMS, bool is_open_linger,
                      int sqlPort, const char* sqlUser, const char* sqlPwd,
                      const char* dbName, int connPoolNum, int threadNum,
                      bool isOpenLog, int logLevel, int logQueSize)
     : port_(port),
-      openLinger_(OptLinger),
+      openLinger_(is_open_linger),
       timeoutMS_(timeoutMS),
       isClosed_(false),
       timer_(new HeapTimer()),
@@ -27,7 +27,7 @@ WebServer::WebServer(int port, int trigMode, int timeoutMS, bool OptLinger,
         } else {
             LOG_INFO("========== Server init ==========");
             LOG_INFO("Port:%d, OpenLinger: %s", port_,
-                     OptLinger ? "true" : "false");
+                     is_open_linger ? "true" : "false");
             LOG_INFO("Listen Mode: %s, OpenConn Mode: %s",
                      (listenEvent_ & EPOLLET ? "ET" : "LT"),
                      (connEvent_ & EPOLLET ? "ET" : "LT"));
@@ -37,7 +37,7 @@ WebServer::WebServer(int port, int trigMode, int timeoutMS, bool OptLinger,
                      threadNum);
         }
     }
-    InitEventMode_(trigMode);
+    InitEventMode_(trigger_mode);
     if (!InitSocket_()) {
         isClosed_ = true;
         LOG_ERROR("Init socket failed");

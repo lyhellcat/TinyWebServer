@@ -209,8 +209,7 @@ bool HttpRequest::UserVerify(const string &name, const string &pwd,
         mysql_free_result(res);
         return check;
     } else {
-        snprintf(
-            sql_query, 256,
+        snprintf(sql_query, 256,
             "SELECT username, password FROM user WHERE username='%s' LIMIT 1",
             name.c_str());
         if (mysql_query(sql, sql_query)) {

@@ -1,0 +1,17 @@
+{
+    "Is open linger": false,
+    "Is open log": true,
+    "Log level": 0,
+    "Log queue size": 10,
+    "Port": 8088,
+    "Sql": {
+        "port": 3066,
+        "user": "root",
+        "password": "root",
+        "connection pool num": 10,
+        "database name": "Webserver"
+    },
+    "Thread num": 13,
+    "Timeout MS": -1,
+    "Trigger mode": 3
+}
