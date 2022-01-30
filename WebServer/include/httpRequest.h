@@ -35,7 +35,7 @@ public:
     std::string& path();
     std::string method() const;
     std::string version() const;
-    std::string GetPost(const std::string &key) const;
+    std::string GetPostValueByKey(const std::string &key) const;
 
 private:
     bool ParseRequestLine_(const std::string &line);

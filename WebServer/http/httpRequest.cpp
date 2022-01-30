@@ -52,6 +52,7 @@ bool HttpRequest::parse(Buffer& buff) {
         case HEADER:
             ParseHeader_(line);
             if (buff.ReadableBytes() <= 2 || method_ == "GET") {
+                buff.InitPtr();
                 state_ = FINISH;
             }
             break;
@@ -61,7 +62,8 @@ bool HttpRequest::parse(Buffer& buff) {
         default:
             break;
         }
-        if (lineEnd == buff.WritePtr()) {
+        if (lineEnd == buff.WritePtr() || state_ == FINISH) {
+            buff.InitPtr();
             break;
         }
         buff.UpdateReadPtrUntilEnd(lineEnd + 2);
@@ -70,7 +72,6 @@ bool HttpRequest::parse(Buffer& buff) {
 
     return true;
 }
-
 
 void HttpRequest::ParsePath_() {
     if (path_ == "/") {
@@ -90,6 +91,7 @@ bool HttpRequest::ParseRequestLine_(const string &line) {
     // stringstream ss(line);
     // ss >> method_ >> path_ >> version_;
     // version_ = version_.substr(5);
+    LOG_DEBUG("%s", line.c_str());
     regex patten("^([^ ]*) ([^ ]*) HTTP/([^ ]*)$");
     smatch subMatch;
     if (regex_match(line, subMatch, patten)) {
@@ -180,64 +182,54 @@ bool HttpRequest::UserVerify(const string &name, const string &pwd,
     LOG_INFO("Verify name:%s pwd:%s", name.c_str(), pwd.c_str());
     MYSQL *sql;
     SqlConnect(&sql, SqlConnPool::Instance());
-    assert(sql);
 
-    bool flag = false;
-    unsigned int j = 0;
-    char order[256] = {0};
-    MYSQL_FIELD *fields = nullptr;
+    char sql_query[256] = {'\0'};
     MYSQL_RES *res = nullptr;
+    MYSQL_FIELD *fields = nullptr;
 
-    if (!isLogin) {
-        flag = true;
-    }
-    // Query user and password
-    snprintf(order, 256,
-             "SELECT username, password FROM user WHERE username='%s' LIMIT 1",
-             name.c_str());
-    LOG_DEBUG("%s", order);
+    if (isLogin) {
+        // Query password form MySQL
+        snprintf(sql_query, 256, "SELECT username, password FROM user WHERE username='%s' LIMIT 1", name.c_str());
+        if (mysql_query(sql, sql_query)) {
+            mysql_free_result(res);
+            return false;
+        }
+        res = mysql_store_result(sql);
 
-    if (mysql_query(sql, order)) {
-        mysql_free_result(res);
-        return false;
-    }
-    res = mysql_store_result(sql);
-    j = mysql_num_fields(res);
-    fields = mysql_fetch_fields(res);
-
-    while (MYSQL_ROW row = mysql_fetch_row(res)) {
-        LOG_DEBUG("MYSQL ROW: %s %s", row[0], row[1]);
-        string password(row[1]);
-        // Registration act and username is not used
-        if (isLogin) {
-            if (pwd == password) {
-                flag = true;
-            } else {
-                flag = false;
-                LOG_DEBUG("pwd error!");
+        bool check = false;
+        while (MYSQL_ROW row = mysql_fetch_row(res)) {
+            LOG_DEBUG("MYSQL ROW: %s %s", row[0], row[1]);
+            string password(row[1]);
+            if (password == pwd) {
+                check = true;
+                break;
             }
-        } else {
-            flag = false;
-            LOG_DEBUG("user used!");
+            LOG_DEBUG("Password error");
         }
-    }
-    mysql_free_result(res);
-
-    // Registration act and username is not used
-    if (!isLogin && flag == true) {
-        LOG_DEBUG("regirster!");
-        snprintf(order, 256,
-                 "INSERT INTO user(username, password) VALUES('%s','%s')",
-                 name.c_str(), pwd.c_str());
-        LOG_DEBUG("%s", order);
-        if (mysql_query(sql, order)) {
+        mysql_free_result(res);
+        return check;
+    } else {
+        snprintf(
+            sql_query, 256,
+            "SELECT username, password FROM user WHERE username='%s' LIMIT 1",
+            name.c_str());
+        if (mysql_query(sql, sql_query)) {
+            mysql_free_result(res);
+            return false;
+        }
+        res = mysql_store_result(sql);
+        if (mysql_num_rows(res)) { // User already exists
+            return false;
+        }
+        snprintf(sql_query, 256, "INSERT INTO user(username, password) VALUES('%s','%s')", name.c_str(), pwd.c_str());
+        if (mysql_query(sql, sql_query)) {
             LOG_DEBUG("Insert error!");
-            flag = false;
+            return false;
         }
-        flag = true;
+        return true;
     }
-    LOG_DEBUG("UserVerify success!!");
-    return flag;
+
+    return false;
 }
 
 string HttpRequest::path() const { return path_; }
@@ -248,10 +240,10 @@ string HttpRequest::method() const { return method_; }
 
 string HttpRequest::version() const { return version_; }
 
-string HttpRequest::GetPost(const string &key) const {
+string HttpRequest::GetPostValueByKey(const string &key) const {
     assert(key != "");
     if (post_.count(key) == 1) {
-        return post_.find(key)->second;
+        return post_.find(key)->second;  // !NOT post_[key]
     }
     return "";
 }

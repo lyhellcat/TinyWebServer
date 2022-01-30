@@ -20,12 +20,12 @@ Log::~Log() {
 }
 
 int Log::GetLevel() {
-    lock_guard<mutex> locker(mtx_);
+    scoped_lock<mutex> locker(mtx_);
     return level_;
 }
 
 void Log::SetLevel(int level) {
-    lock_guard<mutex> locker(mtx_);
+    scoped_lock<mutex> locker(mtx_);
     level_ = level;
 }
 
