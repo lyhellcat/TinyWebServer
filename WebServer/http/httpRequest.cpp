@@ -51,7 +51,7 @@ bool HttpRequest::parse(Buffer& buff) {
             break;
         case HEADER:
             ParseHeader_(line);
-            if (buff.ReadableBytes() <= 2) {
+            if (buff.ReadableBytes() <= 2 || method_ == "GET") {
                 state_ = FINISH;
             }
             break;
@@ -151,47 +151,25 @@ void HttpRequest::ParsePost_() {
     }
 }
 
+void HttpRequest::ParseKeyValue_(const string &line) {
+    size_t pos = line.find_first_of("=");
+    // cout << line.substr(0, pos) << " " << line.substr(pos + 1) << endl;
+    post_[line.substr(0, pos)] = line.substr(pos + 1);
+}
+
+// Parse "username=hellcat&password=123456" --> ["username": "hellcat", "password": "123456"]
 void HttpRequest::ParseFromURLencoded_() {
     if (body_.size() == 0) {
         return;
     }
-
-    string key, value;
-    int num = 0;
-    int n = body_.size();
-
-    int i = 0, j = 0;
-    for (; i < n; i++) {
-        char ch = body_[i];
-        switch (ch) {
-            case '=':
-                key = body_.substr(j, i - j);
-                j = i + 1;
-                break;
-            case '+':
-                body_[i] = ' ';
-                break;
-            case '%':
-                num = ConvertHex(body_[i + 1]) * 16 + ConvertHex(body_[i + 2]);
-                body_[i + 2] = num % 10 + '0';
-                body_[i + 1] = num / 10 + '0';
-                i += 2;
-                break;
-            case '&':
-                value = body_.substr(j, i - j);
-                j = i + 1;
-                post_[key] = value;
-                LOG_DEBUG("%s = %s", key.c_str(), value.c_str());
-                break;
-            default:
-                break;
-        }
+    size_t pre = 0;
+    size_t found = body_.find_first_of("&");
+    while (found != string::npos) {
+        ParseKeyValue_(body_.substr(pre, found - pre));
+        pre = found + 1;
+        found = body_.find_first_of("&", found + 1);
     }
-    assert(j <= i);
-    if (post_.count(key) == 0 && j < i) {
-        value = body_.substr(j, i - j);
-        post_[key] = value;
-    }
+    ParseKeyValue_(body_.substr(pre, found - pre));
 }
 
 bool HttpRequest::UserVerify(const string &name, const string &pwd,
@@ -258,7 +236,6 @@ bool HttpRequest::UserVerify(const string &name, const string &pwd,
         }
         flag = true;
     }
-    SqlConnPool::Instance()->FreeConn(sql);
     LOG_DEBUG("UserVerify success!!");
     return flag;
 }
